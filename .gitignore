@@ -2,3 +2,5 @@
 *.exe
 
 Code/LinkClass/Testing\.cpp
+
+*.json

@@ -1,5 +1,3 @@
-
-
 #ifndef LINKCLASS_H
 #define LINKCLASS_H
 
@@ -11,7 +9,7 @@ public:
 	LinkClass(int coil[], int numSteps=8, float resolution=360.0/4096.0, float maxSpeed=110, float acel=80);
 	~LinkClass();
 
-	void ExecuteStep(int step, int delayM);
+	void ExecuteStep(int step);
 
 	void GoToDeg(float destDeg, float speed);		//Go to destination angle with the given speed. Speed given in deg/s
 

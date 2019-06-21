@@ -1,7 +1,7 @@
 #include "LinkClass.h"
 #include "Arduino.h"
 
-LinkClass::LinkClass(int coil[], int numSteps, float resolution, float maxSpeed=110, float acel){
+LinkClass::LinkClass(int coil[], int numSteps, float resolution, float maxSpeed, float acel){
 	//Start outputs in arduino that activate the step motor coils
 	this->coil[0] = coil[0];
 	this->coil[1] = coil[1];
@@ -42,7 +42,7 @@ LinkClass::LinkClass(int coil[], int numSteps, float resolution, float maxSpeed=
 LinkClass::~LinkClass(){}
 
 
-void LinkClass::ExecuteStep(int step, int delayM){
+void LinkClass::ExecuteStep(int step){
 	//Check direction of rotation
 	int dir = step - this->step;
 	if(abs(dir) == (numSteps-1)){
@@ -65,9 +65,6 @@ void LinkClass::ExecuteStep(int step, int delayM){
 
 	//Update current step
 	this->step = step;
-
-	//Wait until next step (this defines the speed)
-	delayMicroseconds(delayM);
 
 	//Update current orientation
 	angleDeg = angleDeg + ((float)dir)*resolution;
@@ -116,16 +113,21 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 	//Avoid speed to be above motor limit
 	if(speed > maxSpeed) speed = maxSpeed;
 
-
-
-	float currentTime = 0;
+	long currentTime = 0;
+	long lastUpdate = 0;
+	int dt;
 	float currentSpeed = speed;
 
 	//Execute steps until reaches position
 	while(abs(destDeg - angleDeg) >= resolution){			// 360/4096 is the resolution of each step. After the distance to desired angle is less than the resolution, stop iterations
+		
+		currentTime = micros();
+		dt = currentTime - lastUpdate;
 
-		int delayM = (int)((1000000 * resolution)/currentSpeed);
-		ExecuteStep(((step+dir+numSteps) % numSteps), delayM);
+		if(dt > (int)((1000000 * resolution)/currentSpeed)){
+			lastUpdate = currentTime;
+			ExecuteStep(((step+dir+numSteps) % numSteps));
+		}
 
 		//Calculate next speed, given the time passed and acceleration
 		/*if(currentSpeed < speed){
