@@ -1,7 +1,7 @@
 #include "LinkClass.h"
 #include "Arduino.h"
 
-LinkClass::LinkClass(int coil[]){
+LinkClass::LinkClass(int coil[], int numSteps, float resolution, float maxSpeed=110, float acel){
 	//Start outputs in arduino that activate the step motor coils
 	this->coil[0] = coil[0];
 	this->coil[1] = coil[1];
@@ -9,13 +9,13 @@ LinkClass::LinkClass(int coil[]){
 	this->coil[3] = coil[3];
 
 	//The number of steps iterations depends if motor moves with full steps or half steps
-	numSteps = 8;
+	this->numSteps = numSteps;
 
 	//Set current step to initial step
 	step = 0;
 
 	//Set motor to initial position
-	/**/pinMode(coil[0], OUTPUT);
+	pinMode(coil[0], OUTPUT);
 	pinMode(coil[1], OUTPUT);
 	pinMode(coil[2], OUTPUT);
 	pinMode(coil[3], OUTPUT);
@@ -24,6 +24,19 @@ LinkClass::LinkClass(int coil[]){
 	digitalWrite(coil[1], LOW);
 	digitalWrite(coil[2], LOW);
 	digitalWrite(coil[3], LOW);
+
+
+	//Set initial angle to 0
+	angleDeg = 0;
+
+	//Set resolution
+	this->resolution = resolution;
+
+	//Set motor max speed (beyond that, motor can't follow every steps)
+	this->maxSpeed = maxSpeed;
+
+	//Set motor aceleration (for smooth start and stop)
+	this->acel = acel;
 }
 
 LinkClass::~LinkClass(){}
@@ -44,29 +57,87 @@ void LinkClass::ExecuteStep(int step, int delayM){
 	if(numCoils == 1){
 		if((mainCoil == 0) && (dir == 1)) mainCoil = 4;		//To fix the looping problem in the vector
 
-		digitalWrite(coil[mainCoil-dir], LOW);			//Set last coil to LOW
-		/*Serial.print("Bobina ");
-		Serial.print((mainCoil-dir));
-		Serial.println("Setada para LOW");*/
+		digitalWrite(coil[(mainCoil-dir) % 4], LOW);			//Set last coil to LOW
 	}
 	else{		//numCoils == 2
 		digitalWrite(coil[(mainCoil + (dir+1)/2) % 4], HIGH);
-		/*Serial.print("Bobina ");
-		Serial.print(((mainCoil + (dir+1)/2) % 4));
-		Serial.println("Setada para HIGH");*/
 	}
 
+	//Update current step
 	this->step = step;
 
+	//Wait until next step (this defines the speed)
 	delayMicroseconds(delayM);
+
+	//Update current orientation
+	angleDeg = angleDeg + ((float)dir)*resolution;
+
+	//Keep it in the range of [0,360]
+	if(angleDeg >= 360){
+		angleDeg = angleDeg - 360;
+	}
+	else if(angleDeg < 0){
+		angleDeg = angleDeg + 360;
+	}
 }
-/*
-void LinkClass::ShowCoils(){
-	//Serial.begin(9600);
-	Serial.print("Bobina 1: ");
-	Serial.print("Bobina 1: ");
+
+
+void LinkClass::GoToDeg(float destDeg, float speed){
+
+	//Take only angles in the range [0,360[
+	while(destDeg < 0){
+		destDeg = destDeg + 360;
+	}
+	while(destDeg >= 360){
+		destDeg = destDeg - 360;
+	}
+
+
+	//Check wich direction is closest to the angle
+	int dir;
+	if(destDeg > angleDeg){
+		if((destDeg-angleDeg) > ((angleDeg+360) - destDeg)){
+			dir = -1;		//Go clockwise
+		}
+		else{
+			dir = 1;		//Go counter-clockwise
+		}
+	}
+	else{
+		if((angleDeg-destDeg) > ((destDeg+360) - angleDeg)){
+			dir = 1;		//Go forward
+		}
+		else{
+			dir = -1;		//Go backwards
+		}
+	}
+
+
+	//Avoid speed to be above motor limit
+	if(speed > maxSpeed) speed = maxSpeed;
+
+
+
+	float currentTime = 0;
+	float currentSpeed = speed;
+
+	//Execute steps until reaches position
+	while(abs(destDeg - angleDeg) >= resolution){			// 360/4096 is the resolution of each step. After the distance to desired angle is less than the resolution, stop iterations
+
+		int delayM = (int)((1000000 * resolution)/currentSpeed);
+		ExecuteStep(((step+dir+numSteps) % numSteps), delayM);
+
+		//Calculate next speed, given the time passed and acceleration
+		/*if(currentSpeed < speed){
+			currentSpeed = currentSpeed + acel*delayM;
+			if(currentSpeed > speed){
+				currentSpeed = speed;
+			}
+		}*/
+	}
 }
-*/
-int LinkClass::RetMotor(int m){
-	return 0;
+
+
+float LinkClass::GetAngle(){
+	return angleDeg;
 }

@@ -140,10 +140,12 @@ void loop() {
   passos = leitura * 4096 / 360;
   Passo(1, passos,5000);*/
  
-  for(int i=0; i<4096; i++){
-    
-    link1.ExecuteStep(i%8, 775);
-  }
+  link1.GoToDeg(90, 90);
   delay(2000);
   
+  link1.GoToDeg(-70, 90);
+  delay(2000);
+  
+  link1.GoToDeg(0, 90);
+  delay(2000);
 }
