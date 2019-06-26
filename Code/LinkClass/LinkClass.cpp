@@ -1,5 +1,6 @@
 #include "LinkClass.h"
 #include "Arduino.h"
+#include <Arduino_FreeRTOS.h>
 
 LinkClass::LinkClass(int coil[], int numSteps, float resolution, float maxSpeed, float acel){
 	//Start outputs in arduino that activate the step motor coils
@@ -121,6 +122,8 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 	//Execute steps until reaches position
 	while(abs(destDeg - angleDeg) >= resolution){			// 360/4096 is the resolution of each step. After the distance to desired angle is less than the resolution, stop iterations
 		
+		vTaskDelay( NULL );
+
 		currentTime = micros();
 		dt = currentTime - lastUpdate;
 
