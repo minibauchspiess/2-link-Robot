@@ -86,6 +86,49 @@ char SerialManager::GetCommand(){
 	return command;
 }
 
+float SerialManager::GetAngle(int motor){
+	if(motor == 1){
+		return parameters[0];
+	}
+	else{
+		if(numParameters == 4){
+			return parameters[2];
+		}
+		else{
+			return parameters[1];
+		}
+	}
+}
+
+
+float SerialManager::GetSpeed(int motor){
+	if(numParameters <= 2){
+		return DEFAULT_SPEED;
+	}
+	else if(numParameters == 3){
+		return parameters[2];
+	}
+	else{
+		if(motor == 1){
+			return parameters[1];
+		}
+		else{
+			return parameters[3];
+		}
+	}
+}
+
+float SerialManager::GetTime(){
+	if(numParameters == 3){
+		return parameters[2];
+	}
+	else{
+		return DEFAULT_TIME;
+	}
+}
+
+
+
 float SerialManager::GetParameter(int param){
 	return parameters[param];
 }

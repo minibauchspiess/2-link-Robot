@@ -36,10 +36,15 @@
 //		- (2,dgm1,dgm2)
 //
 //		- (3,dgm1,dgm2,t)
+//				* t: time for both motors to arrive at destination
 //
 //		- (3,dgm1,dgm2)
 
 /**************************************************************************************************************************/
+
+//Defining default parameters
+#define DEFAULT_SPEED 60.0
+#define DEFAULT_TIME 3.0
 
 
 class SerialManager
@@ -52,9 +57,15 @@ public:
 	void Clear();
 
 	char GetCommand();
+	//The following functions select the right value from parameters[] to return
+	float GetAngle(int motor);
+	float GetSpeed(int motor);
+	float GetTime();
 
 	float GetParameter(int param);
 	int GetNumParams();
+
+
 
 
 private:
