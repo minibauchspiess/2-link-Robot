@@ -32,13 +32,17 @@ float m2Angle, m2Speed;
 
 
 
+float speed31, speed32;
+
+
+
 void setup() {
   sm = SerialManager();
   //pinMode(LED_BUILTIN, OUTPUT);
 
-  xTaskCreate( TaskReadings, "TaskReadings", 275, NULL, 1, NULL);
-  xTaskCreate( TaskMotor1, "TaskMotor1", 274, NULL, 1, NULL);
-  xTaskCreate( TaskMotor2, "TaskMotor2", 274, NULL, 1, NULL);
+  xTaskCreate( TaskReadings, "TaskReadings", 260, NULL, 1, NULL);
+  xTaskCreate( TaskMotor1, "TaskMotor1", 260, NULL, 1, NULL);
+  xTaskCreate( TaskMotor2, "TaskMotor2", 260, NULL, 1, NULL);
   
   
 }
@@ -55,7 +59,6 @@ void TaskReadings(void *pvParameters){
     int result = sm.ReadSerial();
   
     if(result == 1){
-      digitalWrite(12, HIGH);
       //Set global parameters according to readings
       char com = sm.GetCommand();
       m1Angle = sm.GetAngle(1);
@@ -86,6 +89,7 @@ void TaskReadings(void *pvParameters){
       }
     
       else if(com == '3'){
+        //digitalWrite(12, HIGH);
         tDelay = sm.GetTime();
         enableM1 = true;
         enableM2 = true;
@@ -122,7 +126,10 @@ void TaskMotor1(void *pvParameters){
           break;
 
         case '3':
-          link1.GoToDeg(m1Angle, (abs(link1.GetAngle() - m1Angle) / tDelay));
+          speed31 = min((abs(link1.GetAngle() - m1Angle) / tDelay), (abs(link1.GetAngle() - 360 - m1Angle) / tDelay));
+          if(speed31 > 0){
+            link1.GoToDeg(m1Angle, speed31);
+          }
           enableM1 = false;
           break;
 
@@ -161,7 +168,10 @@ void TaskMotor2(void *pvParameters){
           break;
 
         case '3':
-          link2.GoToDeg(m2Angle, (abs(link2.GetAngle() - m2Angle) / tDelay));
+          speed32 = min((abs(link2.GetAngle() - m2Angle) / tDelay), (abs(link2.GetAngle() - 360 - m2Angle) / tDelay));
+          if(speed32 > 0){
+            link2.GoToDeg(m2Angle, speed32);
+          }
           enableM2 = false;
           break;
 
@@ -176,5 +186,18 @@ void TaskMotor2(void *pvParameters){
     
   }
   vTaskDelete(NULL);
+}
+
+
+
+void blinkNTimes(float n){
+  float i=0;
+  while(i<n){
+    digitalWrite(12, HIGH);
+    delay(300);
+    digitalWrite(12,LOW);
+    delay(300);
+    i = i + 1;
+  }
 }
 
