@@ -122,7 +122,7 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 	//Execute steps until reaches position
 	while(abs(destDeg - angleDeg) >= resolution){			// 360/4096 is the resolution of each step. After the distance to desired angle is less than the resolution, stop iterations
 		
-		vTaskDelay( 0.001 );
+		vTaskDelay( 0 );
 
 		currentTime = micros();
 		dt = currentTime - lastUpdate;

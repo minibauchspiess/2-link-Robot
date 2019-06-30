@@ -1,18 +1,12 @@
 #include <Arduino_FreeRTOS.h>
 #include "LinkClass.h"
-
-//Functions declaration
-float ReadFloat();
-char ReadChar();
-
+#include "SerialManager.h"
 
 
 //Tasks declaration (for multithreading)
-void TaskRotateMotor1(void *pvParameters);
-void TaskRotateMotor2(void *pvParameters);
-
-
-
+void TaskMotor1(void *pvParameters);
+void TaskMotor2(void *pvParameters);
+void TaskReadings(void *pvParameters);
 
 
 
@@ -23,61 +17,164 @@ LinkClass link1(m1);
 int m2[4] = {8,9,10,11};
 LinkClass link2(m2);
 
+//Creating Serial Manager object
+SerialManager sm;
+
+
+//Variables used for the motor tasks
+bool enableM1=false;
+float m1Angle, m1Speed, tDelay;
+
+bool enableM2=false;
+float m2Angle, m2Speed;
+
+
+
 
 
 void setup() {
-  Serial.begin(9600);
+  sm = SerialManager();
+  //pinMode(LED_BUILTIN, OUTPUT);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  float sp = 90;
-  //SetUp task
-  //xTaskCreate( TaskRotateMotor2, "TaskRotateMotor2", 128, NULL, 1, NULL);
-  //xTaskCreate( TaskRotateMotor1, "TaskRotateMotor1", 128, NULL, 1, NULL);
+  xTaskCreate( TaskReadings, "TaskReadings", 275, NULL, 1, NULL);
+  xTaskCreate( TaskMotor1, "TaskMotor1", 274, NULL, 1, NULL);
+  xTaskCreate( TaskMotor2, "TaskMotor2", 274, NULL, 1, NULL);
+  
+  
 }
 
 void loop() {
-  float in1 = -90, in2 = 60;
-  char a;
-  //in1 = ReadFloat();
-  //in2 = ReadFloat();
 
-  a = ReadChar();
-  Serial.println(a);
-  
-  //digitalWrite(LED_BUILTIN, HIGH);
-  delay((int)100 * in2);
-  link1.GoToDeg(in1, in2);
-  digitalWrite(LED_BUILTIN, LOW);
-  
-  delay(1000);
 }
 
 
-
-
-
-void TaskRotateMotor1(void *pvParameters){
+void TaskReadings(void *pvParameters){
   (void) pvParameters;
-  link1.GoToDeg(90, 17.5);
-  vTaskDelete( NULL );
-}
-
-void TaskRotateMotor2(void *pvParameters){
-  (void) pvParameters;
-  link2.GoToDeg(90, 17.5);
-  vTaskDelete( NULL );
-}
-
-//Take reading as a float
-float ReadFloat(){
-  while(Serial.available() < 0){}
-    return Serial.parseFloat();
+  while(true){
+    //Teste da leitura da porta serial
+    int result = sm.ReadSerial();
   
-}
+    if(result == 1){
+      digitalWrite(12, HIGH);
+      //Set global parameters according to readings
+      char com = sm.GetCommand();
+      m1Angle = sm.GetAngle(1);
+      m2Angle = sm.GetAngle(2);
 
-char ReadChar(){
-  if(Serial.available() > 0){
-    return (char)Serial.read();
+      //Activate motor tasks according to the command
+      if(com == '0'){
+        //Serial.println("Voltando pro comeco");
+      }
+      
+      else if(com == '1'){
+        m1Speed = sm.GetSpeed(1);
+        m2Speed = sm.GetSpeed(2);
+      
+        enableM1 = true;
+        while(enableM1){
+          vTaskDelay(0.001);
+        }
+        enableM2 = true;
+      }
+  
+      else if(com == '2'){
+        m1Speed = sm.GetSpeed(1);
+        m2Speed = sm.GetSpeed(2);
+        
+        enableM1 = true;
+        enableM2 = true;
+      }
+    
+      else if(com == '3'){
+        tDelay = sm.GetTime();
+        enableM1 = true;
+        enableM2 = true;
+      }
+      else if(com == '4'){
+        
+      } 
+    }
+    vTaskDelay(10);
   }
+  
+}
+
+void TaskMotor1(void *pvParameters){
+  (void) pvParameters;
+
+  while(true){
+    if(enableM1){
+      
+      switch(sm.GetCommand()){
+        case '0':
+
+          enableM1 = false;
+          break;
+          
+        case '1':
+          link1.GoToDeg(m1Angle, m1Speed);
+          enableM1 = false;
+          break;
+
+        case '2':
+          link1.GoToDeg(m1Angle, m1Speed);
+          enableM1 = false;
+          break;
+
+        case '3':
+          link1.GoToDeg(m1Angle, (abs(link1.GetAngle() - m1Angle) / tDelay));
+          enableM1 = false;
+          break;
+
+        case '4':
+
+          enableM1 = false;
+          break;
+          
+      }
+    }
+    vTaskDelay(1);
+    
+  }
+  vTaskDelete(NULL);
+}
+
+void TaskMotor2(void *pvParameters){
+  (void) pvParameters;
+  
+  while(true){
+    if(enableM2){
+      switch(sm.GetCommand()){
+        case '0':
+
+          enableM2 = false;
+          break;
+          
+        case '1':
+          link2.GoToDeg(m2Angle, m2Speed);
+          enableM2 = false;
+          break;
+
+        case '2':
+          link2.GoToDeg(m2Angle, m2Speed);
+          enableM2 = false;
+          break;
+
+        case '3':
+          link2.GoToDeg(m2Angle, (abs(link2.GetAngle() - m2Angle) / tDelay));
+          enableM2 = false;
+          break;
+
+        case '4':
+
+          enableM2 = false;
+          break;
+          
+      }
+    }
+    vTaskDelay(1);
+    
+  }
+  vTaskDelete(NULL);
 }
 
