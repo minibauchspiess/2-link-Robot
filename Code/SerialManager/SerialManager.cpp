@@ -127,6 +127,18 @@ float SerialManager::GetTime(){
 	}
 }
 
+float SerialManager::GetInitAngle(int motor){
+	if(numParameters == 0){
+		return 0;
+	}
+	else if(motor == 1){
+		return parameters[0];
+	}
+	else if(motor == 2){
+		return parameters[1];
+	}
+}
+
 
 
 float SerialManager::GetParameter(int param){

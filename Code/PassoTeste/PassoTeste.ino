@@ -12,10 +12,10 @@ void TaskReadings(void *pvParameters);
 
 //Creating links objects
 int m1[4] = {2,3,4,6};
-LinkClass link1(m1);
+LinkClass link1(m1, 7);
 
 int m2[4] = {8,9,10,11};
-LinkClass link2(m2);
+LinkClass link2(m2, 12);
 
 //Creating Serial Manager object
 SerialManager sm;
@@ -39,10 +39,9 @@ float speed31, speed32;
 void setup() {
   sm = SerialManager();
   //pinMode(LED_BUILTIN, OUTPUT);
-
-  xTaskCreate( TaskReadings, "TaskReadings", 260, NULL, 1, NULL);
-  xTaskCreate( TaskMotor1, "TaskMotor1", 260, NULL, 1, NULL);
-  xTaskCreate( TaskMotor2, "TaskMotor2", 260, NULL, 1, NULL);
+  xTaskCreate( TaskReadings, "TaskReadings", 100, NULL, 1, NULL);
+  xTaskCreate( TaskMotor1, "TaskMotor1", 350, NULL, 1, NULL);
+  xTaskCreate( TaskMotor2, "TaskMotor2", 350, NULL, 1, NULL);
   
   
 }
@@ -54,49 +53,56 @@ void loop() {
 
 void TaskReadings(void *pvParameters){
   (void) pvParameters;
+  link1.Home();
+  link2.Home();
   while(true){
-    //Teste da leitura da porta serial
-    int result = sm.ReadSerial();
-  
-    if(result == 1){
-      //Set global parameters according to readings
-      char com = sm.GetCommand();
-      m1Angle = sm.GetAngle(1);
-      m2Angle = sm.GetAngle(2);
 
-      //Activate motor tasks according to the command
-      if(com == '0'){
-        //Serial.println("Voltando pro comeco");
-      }
-      
-      else if(com == '1'){
-        m1Speed = sm.GetSpeed(1);
-        m2Speed = sm.GetSpeed(2);
-      
-        enableM1 = true;
-        while(enableM1){
-          vTaskDelay(0.001);
-        }
-        enableM2 = true;
-      }
+    if(!enableM1 && !enableM2){
+      //Test if there's any readings at the serial port
+      int result = sm.ReadSerial();
   
-      else if(com == '2'){
-        m1Speed = sm.GetSpeed(1);
-        m2Speed = sm.GetSpeed(2);
+      if(result == 1){
+        //Set global parameters according to readings
+        char com = sm.GetCommand();
+        m1Angle = sm.GetAngle(1);
+        m2Angle = sm.GetAngle(2);
+
+        //Activate motor tasks according to the command
+        if(com == '0'){
+          //Serial.println("Voltando pro comeco");
+          link1.Home(sm.GetInitAngle(1));
+          link2.Home(sm.GetInitAngle(2));
+        }
+      
+        else if(com == '1'){
+          m1Speed = sm.GetSpeed(1);
+          m2Speed = sm.GetSpeed(2);
+      
+          enableM1 = true;
+          while(enableM1){
+            vTaskDelay(0.001);
+          }
+          enableM2 = true;
+        }
+  
+        else if(com == '2'){
+          m1Speed = sm.GetSpeed(1);
+          m2Speed = sm.GetSpeed(2);
         
-        enableM1 = true;
-        enableM2 = true;
-      }
+          enableM1 = true;
+          enableM2 = true;
+        }
     
-      else if(com == '3'){
-        //digitalWrite(12, HIGH);
-        tDelay = sm.GetTime();
-        enableM1 = true;
-        enableM2 = true;
-      }
-      else if(com == '4'){
+        else if(com == '3'){
+          //digitalWrite(12, HIGH);
+          tDelay = sm.GetTime();
+          enableM1 = true;
+          enableM2 = true;
+        }
+        else if(com == '4'){
         
-      } 
+        } 
+      }
     }
     vTaskDelay(10);
   }
@@ -193,9 +199,9 @@ void TaskMotor2(void *pvParameters){
 void blinkNTimes(float n){
   float i=0;
   while(i<n){
-    digitalWrite(12, HIGH);
+    digitalWrite(1, HIGH);
     delay(300);
-    digitalWrite(12,LOW);
+    digitalWrite(1,LOW);
     delay(300);
     i = i + 1;
   }

@@ -2,12 +2,16 @@
 #include "Arduino.h"
 #include <Arduino_FreeRTOS.h>
 
-LinkClass::LinkClass(int coil[], int numSteps, float resolution, float maxSpeed, float acel){
+LinkClass::LinkClass(int coil[], int bumper, int numSteps, float resolution, float maxSpeed, float acel){
 	//Start outputs in arduino that activate the step motor coils
 	this->coil[0] = coil[0];
 	this->coil[1] = coil[1];
 	this->coil[2] = coil[2];
 	this->coil[3] = coil[3];
+
+	//Set bumper input (to identify initial position)
+	this->bumper = bumper;
+	pinMode(bumper, INPUT_PULLUP);
 
 	//The number of steps iterations depends if motor moves with full steps or half steps
 	this->numSteps = numSteps;
@@ -142,7 +146,59 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 	}
 }
 
+void LinkClass::Home(float initAngle){
+
+	float speed = HOMESPEEDFAST;
+	long currentTime = 0;
+	long lastUpdate = 0;
+	int dt;
+	//Execute steps until reaches bumper, at normal speed
+	while(digitalRead(bumper)){
+		vTaskDelay(0);
+		currentTime = micros();
+		dt = currentTime - lastUpdate;
+
+		if(dt > (int)((1000000 * resolution)/speed)){
+			lastUpdate = currentTime;
+			ExecuteStep(((step-1+numSteps) % numSteps));
+		}
+	}
+
+	speed = HOMESPEEDSLOW;
+	//Go a little bit forward
+	for(int i=step; i < 100; i++){
+		vTaskDelay(0);
+		currentTime = micros();
+		dt = currentTime - lastUpdate;
+
+		if(dt > (int)((1000000 * resolution)/speed)){
+			lastUpdate = currentTime;
+			ExecuteStep(((step+1+numSteps) % numSteps));
+		}
+	}
+
+	//Go to bumper, slowly this time
+	while(digitalRead(bumper)){
+		vTaskDelay(0);
+		currentTime = micros();
+		dt = currentTime - lastUpdate;
+
+		if(dt > (int)((1000000 * resolution)/speed)){
+			lastUpdate = currentTime;
+			ExecuteStep(((step-1+numSteps) % numSteps));
+		}
+	}
+
+	//Set initial angle in given position
+	angleDeg = initAngle;
+}
+
 
 float LinkClass::GetAngle(){
 	return angleDeg;
+}
+
+
+float LinkClass::CalculatePhase4Speed(float x, float y, int linkNum, LinkClass *otherLink){
+
 }

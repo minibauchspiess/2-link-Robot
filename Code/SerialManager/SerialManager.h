@@ -2,7 +2,8 @@
 /*************************************************************************************************************************/
 //	Class used to manage the inputs from the serial port
 //	Every message start with the commands '0', '1', '2', '3' or '4', where:
-//		- '0' commands motors to go to the initial position. No aditional parameters are needed
+//		- '0' commands motors to go to the initial position. Aditional parameters:
+//				* initial angle. If no value is passed, it is assumed as 0
 //		- '1' executes phase 1: the two motors go to the respective angle, at a constant speed and in different momments. Aditional parameters:
 //				* motors final angles
 //				* speed of the motors (if one parameter is passed, both motors move at the same speed. If none are passed, they move at a default speed)
@@ -17,7 +18,11 @@
 //				
 //
 //	Available commands:
-//		- (0);
+//		- (0,dginm1,dginm2)
+//				* dginm1: angle of initial position of motor 1
+//				* dginm2: angle of initial position of motor 2
+//
+//		- (0)
 //
 //		- (1,dgm1,spm1,dgm2,spm2)
 //				* dgm1: angle of motor 1;
@@ -61,6 +66,7 @@ public:
 	float GetAngle(int motor);
 	float GetSpeed(int motor);
 	float GetTime();
+	float GetInitAngle(int motor);
 
 	float GetParameter(int param);
 	int GetNumParams();
