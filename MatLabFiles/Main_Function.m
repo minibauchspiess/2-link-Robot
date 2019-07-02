@@ -1,24 +1,24 @@
-function Main_Function(phase,x,y)
+function Main_Function(s,phase,x,y)
 %   This is the main function here on matlab, this is responsible for
 %   opening, sending the message and closing the serial port, making calls
 %   for Check_Workspace and Two_Link_Inverse_Kinematics.
 %   It's necessary to give which phase is going on and the point P(x,y) desired
     clc
     
-    s = serial('COM15');
-    %fopen(s);
     
-    L1 = 1;
-    L2 = 1;
+    s = serial('COM15');
+    fopen(s);
+    L1 = 105;
+    L2 = 100;
    
     if ~Check_Workspace(x,y,L1,L2)
         disp(strcat('Ponto (',num2str(x),',',num2str(y), ') fora da area de trabalho'))
         return;
     end
-   
-    arival_time = '4';
-    speed1 = '1';
-    speed2 = '1';    
+    x=-x;
+    arival_time = '3';
+    speed1 = '40';
+    speed2 = '40';    
         
     [teta1,teta2] = Two_Link_Inverse_Kinematics(x,y,L1,L2);
     
@@ -44,6 +44,5 @@ function Main_Function(phase,x,y)
     end
     %disp(str)
     fprintf(s,str);
-    fclose(s);
 end
 

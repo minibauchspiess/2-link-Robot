@@ -2,7 +2,7 @@
 #define LINKCLASS_H
 
 #define START_SPEED 1
-#define HOMESPEEDFAST 50
+#define HOMESPEEDFAST 30
 #define HOMESPEEDSLOW 5
 
 class LinkClass{
@@ -13,13 +13,16 @@ public:
 
 	void ExecuteStep(int step);
 
+	void StepDir(int dir);
+
 	void GoToDeg(float destDeg, float speed);		//Go to destination angle with the given speed. Speed given in deg/s
 
 	void Home(float initAngle=0);
 
 	float GetAngle();
 
-	float CalculatePhase4Speed(float x, float y, int linkNum, LinkClass *otherLink);
+	void phase4(int motor, float destDeg, LinkClass *otherLink, float speedx, float speedy);
+	float CalculatePhase4Speed(float x, float y, float theta1, float theta2, int linkNum, LinkClass *otherLink);
 
 private:
 	int coil[4];

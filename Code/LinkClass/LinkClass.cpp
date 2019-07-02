@@ -84,6 +84,18 @@ void LinkClass::ExecuteStep(int step){
 }
 
 
+void LinkClass::StepDir(int dir){
+	int nxtStep = step + dir;
+	if(nxtStep>7){
+		nxtStep = nxtStep - 8;
+	}
+	else if(nxtStep<0){
+		nxtStep = nxtStep + 8;
+	}
+	ExecuteStep(nxtStep);
+}
+
+
 void LinkClass::GoToDeg(float destDeg, float speed){
 
 	//Take only angles in the range [0,360[
@@ -133,7 +145,7 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 
 		if(dt > (int)((1000000 * resolution)/currentSpeed)){
 			lastUpdate = currentTime;
-			ExecuteStep(((step+dir+numSteps) % numSteps));
+			StepDir(dir);
 		}
 
 		//Calculate next speed, given the time passed and acceleration
@@ -160,7 +172,7 @@ void LinkClass::Home(float initAngle){
 
 		if(dt > (int)((1000000 * resolution)/speed)){
 			lastUpdate = currentTime;
-			ExecuteStep(((step-1+numSteps) % numSteps));
+			StepDir(-1);
 		}
 	}
 
@@ -199,6 +211,6 @@ float LinkClass::GetAngle(){
 }
 
 
-float LinkClass::CalculatePhase4Speed(float x, float y, int linkNum, LinkClass *otherLink){
+/*float LinkClass::CalculatePhase4Speed(float x, float y, int linkNum, LinkClass *otherLink){
 
-}
+}*/
