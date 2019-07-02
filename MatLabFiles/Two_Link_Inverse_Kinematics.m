@@ -1,11 +1,11 @@
-function [Teta1,Teta2] = Two_Link_Inverse_Kinematics(x,y,link1,link2)
-    clc
-    
-    n = (x^2 + y^2 - link1^2 - link2^2)/(2*link1*link2);
+function [Teta1,Teta2] = Two_Link_Inverse_Kinematics(x,y,L1,L2)
+%   Calculates the inverse Kinematics for a planar robot with 2 links given
+%   (x,y) desired and both links lenths 
+    n = (x^2 + y^2 - L1^2 - L2^2)/(2*L1*L2);
     Teta2 = acos(n);
     
-    m = y*(link1 + link2*cos(Teta2)) - x*link2*sin(Teta2);
-    m = m/(x*(link1 + link2*cos(Teta2)) + y*link2*(Teta2));
+    m = y*(L1 + L2*cos(Teta2)) - x*L2*sin(Teta2);
+    m = m/(x*(L1 + L2*cos(Teta2)) + y*L2*(Teta2));
     Teta1 = num2str(rad2deg(atan(m)));
     Teta2 = num2str(rad2deg(Teta2));
 end
