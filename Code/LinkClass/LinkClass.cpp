@@ -72,7 +72,7 @@ void LinkClass::ExecuteStep(int step){
 	this->step = step;
 
 	//Update current orientation
-	angleDeg = angleDeg + ((float)dir)*resolution;
+	angleDeg = angleDeg - ((float)dir)*resolution;
 
 	//Keep it in the range of [0,360]
 	if(angleDeg >= 360){
@@ -85,7 +85,8 @@ void LinkClass::ExecuteStep(int step){
 
 
 void LinkClass::StepDir(int dir){
-	int nxtStep = step + dir;
+	//Invert direction (+1 is direction counter-clockwise, but motor uses steps clockwise as positive)
+	int nxtStep = step - dir;
 	if(nxtStep>7){
 		nxtStep = nxtStep - 8;
 	}
@@ -110,19 +111,19 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 	//Check wich direction is closest to the angle
 	int dir;
 	if(destDeg > angleDeg){
-		if((destDeg-angleDeg) > ((angleDeg+360) - destDeg)){
+		if((destDeg-angleDeg) < ((angleDeg+360) - destDeg)){
+			dir = 1;		//Go counter-clockwise
+		}
+		else{
+			dir = -1;		//Go clockwise
+		}
+	}
+	else{
+		if((angleDeg-destDeg) < ((destDeg+360) - angleDeg)){
 			dir = -1;		//Go clockwise
 		}
 		else{
 			dir = 1;		//Go counter-clockwise
-		}
-	}
-	else{
-		if((angleDeg-destDeg) > ((destDeg+360) - angleDeg)){
-			dir = 1;		//Go forward
-		}
-		else{
-			dir = -1;		//Go backwards
 		}
 	}
 
@@ -147,14 +148,6 @@ void LinkClass::GoToDeg(float destDeg, float speed){
 			lastUpdate = currentTime;
 			StepDir(dir);
 		}
-
-		//Calculate next speed, given the time passed and acceleration
-		/*if(currentSpeed < speed){
-			currentSpeed = currentSpeed + acel*delayM;
-			if(currentSpeed > speed){
-				currentSpeed = speed;
-			}
-		}*/
 	}
 }
 
@@ -172,32 +165,7 @@ void LinkClass::Home(float initAngle){
 
 		if(dt > (int)((1000000 * resolution)/speed)){
 			lastUpdate = currentTime;
-			StepDir(-1);
-		}
-	}
-
-	speed = HOMESPEEDSLOW;
-	//Go a little bit forward
-	for(int i=step; i < 100; i++){
-		vTaskDelay(0);
-		currentTime = micros();
-		dt = currentTime - lastUpdate;
-
-		if(dt > (int)((1000000 * resolution)/speed)){
-			lastUpdate = currentTime;
-			ExecuteStep(((step+1+numSteps) % numSteps));
-		}
-	}
-
-	//Go to bumper, slowly this time
-	while(digitalRead(bumper)){
-		vTaskDelay(0);
-		currentTime = micros();
-		dt = currentTime - lastUpdate;
-
-		if(dt > (int)((1000000 * resolution)/speed)){
-			lastUpdate = currentTime;
-			ExecuteStep(((step-1+numSteps) % numSteps));
+			StepDir(1);
 		}
 	}
 

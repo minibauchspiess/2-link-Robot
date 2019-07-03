@@ -21,8 +21,8 @@ public:
 
 	float GetAngle();
 
-	void phase4(int motor, float destDeg, LinkClass *otherLink, float speedx, float speedy);
-	float CalculatePhase4Speed(float x, float y, float theta1, float theta2, int linkNum, LinkClass *otherLink);
+	//void phase4(int motor, float destDeg, LinkClass *otherLink, float speedx, float speedy);
+	//float CalculatePhase4Speed(float x, float y, float theta1, float theta2, int linkNum, LinkClass *otherLink);
 
 private:
 	int coil[4];

@@ -3,24 +3,24 @@ function Main_Function(s,phase,x,y)
 %   opening, sending the message and closing the serial port, making calls
 %   for Check_Workspace and Two_Link_Inverse_Kinematics.
 %   It's necessary to give which phase is going on and the point P(x,y) desired
-    clc
+    %clc
     
     
-    s = serial('COM15');
-    fopen(s);
-    L1 = 105;
-    L2 = 100;
+    %s = serial('COM15');
+    %fopen(s);
+    L1 = 98.5;
+    L2 = 77.88;
    
     if ~Check_Workspace(x,y,L1,L2)
         disp(strcat('Ponto (',num2str(x),',',num2str(y), ') fora da area de trabalho'))
         return;
     end
-    x=-x;
+    %x=-x;
     arival_time = '3';
     speed1 = '40';
     speed2 = '40';    
         
-    [teta1,teta2] = Two_Link_Inverse_Kinematics(x,y,L1,L2);
+    [teta1,teta2] = Two_Link_Inverse_Kinematics(x,y,L1,L2)
     
     teta1 = num2str(teta1);
     teta2 = num2str(teta2);
@@ -33,7 +33,7 @@ function Main_Function(s,phase,x,y)
     elseif phase == 4
         str = strcat('(4,',x,',',y,',',teta1,',',teta2,',',speed1,')');
     elseif phase == 0
-        str = '(0)';
+        str = '(0,156,11.4)';
     elseif phase == 1
         str = strcat('(1,',teta1,',',speed1,',',teta2,',',speed2,')'); 
     elseif phase == 2

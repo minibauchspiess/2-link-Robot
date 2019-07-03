@@ -47,14 +47,13 @@ void setup() {
 }
 
 void loop() {
-
 }
 
 
 void TaskReadings(void *pvParameters){
   (void) pvParameters;
-  link1.Home();
-  link2.Home();
+  link1.Home(156);
+  link2.Home(11.4);
   while(true){
 
     if(!enableM1 && !enableM2){
