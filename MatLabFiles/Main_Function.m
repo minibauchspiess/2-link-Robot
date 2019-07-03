@@ -20,7 +20,7 @@ function Main_Function(s,phase,x,y)
     speed1 = '40';
     speed2 = '40';    
         
-    [teta1,teta2] = Two_Link_Inverse_Kinematics(x,y,L1,L2)
+    [teta1,teta2] = Two_Link_Inverse_Kinematics(x,y,L1,L2);
     
     teta1 = num2str(teta1);
     teta2 = num2str(teta2);
